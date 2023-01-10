@@ -33,6 +33,8 @@
 
     <modules>
         <module>mybatis-demo</module>
+        <module>mybatis-spring</module>
+        <module>mybatis-spring-boot-starter</module>
     </modules>
 
     <build>

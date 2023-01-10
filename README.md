@@ -53,3 +53,22 @@ MybatisAutoConfiguration(在包mybatis-spring-boot-autoconfigure中)
 		MapperScannerRegistrarNotFoundConfiguration静态类引入了AutoConfiguredMapperScannerRegistrar
 		该类实现了InitializingBean，注入了MapperScanner对象，该对象会扫描指定包路径下的Mapper文件
 
+
+## 源码解读
+
+
+### 入口一 @MapperScan，扫描mybatis要用到的类，解析为BeanDefinition，最终加载到spring容器中
+
+- 1.spring启动`AbstractApplicationContext` refresh()方法中`invokeBeanFactoryPostProcessors`中会执行`BeanDefinitionRegistryPostProcessor`的`postProcessBeanDefinitionRegistry`方法
+- 2.其中优先执行实现了`PriorityOrdered`接口的`ConfigurationClassPostProcessor`类，该类中加载配置类，full、lite配置
+- 3.对于其中的`@ComponentScan`注解，会进行包扫描，`@Import`相关的注解也会注入对应的BeanDefinition
+- 4.`MapperScan`注解Import了`MapperScannerRegistrar`，该类注入了`MapperScannerConfigurer`
+- 5.`MapperScannerConfigurer`类实现了`BeanDefinitionRegistryPostProcessor`，会执行`postProcessBeanDefinitionRegistry`方法，该方法会扫描mybatis需要用到的类
+- 6.`MapperScannerConfigurer`没有实现任何优先级的接口，故执行顺序要次于`ConfigurationClassPostProcessor`
+- 7.`ConfigurationClassPostProcessor`中会进行包扫描，`MapperScannerConfigurer`中也会进行包扫描，优于先后顺序，spring的包扫描要优于mybatis的执行
+
+### 入口二 自动装配类 MybatisAutoConfiguration
+
+TODO
+- 1.多数据源
+- 2.

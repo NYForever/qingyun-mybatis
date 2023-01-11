@@ -94,20 +94,20 @@ public final class SqlSessionUtils {
     notNull(sessionFactory, NO_SQL_SESSION_FACTORY_SPECIFIED);
     notNull(executorType, NO_EXECUTOR_TYPE_SPECIFIED);
 
-    //从当前线程中获取SqlSessionHolder。即同一个线程不会重复创建sqlsession
+    // 从当前线程中获取SqlSessionHolder。即同一个线程不会重复创建sqlsession
     SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
 
-    //SqlSessionHolder不为空直接返回session，不重复创建
+    // SqlSessionHolder不为空直接返回session，不重复创建
     SqlSession session = sessionHolder(executorType, holder);
     if (session != null) {
       return session;
     }
 
     LOGGER.debug(() -> "Creating a new SqlSession");
-    //创建一个sqlsessin，属于mybatis的代码
+    // 创建一个sqlsessin，属于mybatis的代码
     session = sessionFactory.openSession(executorType);
 
-    //绑定到当前线程
+    // 绑定到当前线程
     registerSessionHolder(sessionFactory, executorType, exceptionTranslator, session);
 
     return session;
@@ -139,7 +139,7 @@ public final class SqlSessionUtils {
         LOGGER.debug(() -> "Registering transaction synchronization for SqlSession [" + session + "]");
 
         holder = new SqlSessionHolder(session, executorType, exceptionTranslator);
-        //SqlSessionHolder绑定到当前线程中去
+        // SqlSessionHolder绑定到当前线程中去
         TransactionSynchronizationManager.bindResource(sessionFactory, holder);
         TransactionSynchronizationManager
             .registerSynchronization(new SqlSessionSynchronization(holder, sessionFactory));

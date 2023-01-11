@@ -67,9 +67,7 @@ import org.springframework.util.StringUtils;
 
 /**
  *
- * 自动配置类，
- * AutoConfigureAfter注解，表示先加载该注解指定的类，
- * 其中DataSourceAutoConfiguration ConditionalOnClass DataSource
+ * 自动配置类， AutoConfigureAfter注解，表示先加载该注解指定的类， 其中DataSourceAutoConfiguration ConditionalOnClass DataSource
  * 在不引入mysql相关驱动包是，DataSource只是一个借口，没有实现类，所以容器中没有DataSource，所以MybatisAutoConfiguration也不会加载
  * 当引入数据库相关驱动包后，DataSource有对应的实现类，可以被加载，所以MybatisAutoConfiguration生效
  *
@@ -136,8 +134,7 @@ public class MybatisAutoConfiguration implements InitializingBean {
   }
 
   /**
-   * 注入sqlSessionFactory
-   * 设置其相关属性，包括typeHandlers、interceptors等
+   * 注入sqlSessionFactory 设置其相关属性，包括typeHandlers、interceptors等
    */
   @Bean
   @ConditionalOnMissingBean

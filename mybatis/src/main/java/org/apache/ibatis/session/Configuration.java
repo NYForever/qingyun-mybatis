@@ -656,6 +656,7 @@ public class Configuration {
     if (cacheEnabled) {
       executor = new CachingExecutor(executor);
     }
+    //各个模块（Executor、ParameterHandler、ResultSetHandler、StatementHandler）创建的最后一步，执行pluginAll方法
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;
   }

@@ -95,6 +95,7 @@ public class MybatisAutoConfiguration implements InitializingBean {
 
   private final MybatisProperties properties;
 
+  //spring自动注入 Interceptors
   private final Interceptor[] interceptors;
 
   private final TypeHandler[] typeHandlers;
@@ -149,6 +150,7 @@ public class MybatisAutoConfiguration implements InitializingBean {
     if (this.properties.getConfigurationProperties() != null) {
       factory.setConfigurationProperties(this.properties.getConfigurationProperties());
     }
+    //设置为factory的plugin属性
     if (!ObjectUtils.isEmpty(this.interceptors)) {
       factory.setPlugins(this.interceptors);
     }
@@ -243,6 +245,7 @@ public class MybatisAutoConfiguration implements InitializingBean {
         packages.forEach(pkg -> logger.debug("Using auto-configuration base package '{}'", pkg));
       }
 
+      //包扫描
       BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(MapperScannerConfigurer.class);
       builder.addPropertyValue("processPropertyPlaceHolders", true);
       builder.addPropertyValue("annotationClass", Mapper.class);
@@ -268,6 +271,7 @@ public class MybatisAutoConfiguration implements InitializingBean {
    */
   @org.springframework.context.annotation.Configuration
   @Import(AutoConfiguredMapperScannerRegistrar.class)
+  //MapperFactoryBean 管理mapper的代理类
   @ConditionalOnMissingBean({ MapperFactoryBean.class, MapperScannerConfigurer.class })
   public static class MapperScannerRegistrarNotFoundConfiguration implements InitializingBean {
 

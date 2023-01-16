@@ -41,23 +41,23 @@ tips：
 自动配置类
 MybatisAutoConfiguration(在包mybatis-spring-boot-autoconfigure中)
 
-		@AutoConfigureAfter：在加载其value配置的类之后再加载当前类
-			确定了线程池管理对象PooledDataSourceConfiguration，在一个list中存放，for循环，Class对象加载类，获取到就返回，第一个是HikariDataSource，所以springboot2.0以上版本，会默认使用HikariDataSource作为数据库连接池管理对象
-			"com.zaxxer.hikari.HikariDataSource",
-			"org.apache.tomcat.jdbc.pool.DataSource", 
-			"org.apache.commons.dbcp2.BasicDataSource"
-
-		sqlSessionFactory 通过DataSource生成factory，factory中设置了configuration配置的所有属性，包括plugins、typeHandlers等
-		sqlSessionTemplate 在包 mybatis-spring中，是spring封装的sqlSession对象，可以调用查询等方法
-
-		MapperScannerRegistrarNotFoundConfiguration静态类引入了AutoConfiguredMapperScannerRegistrar
-		该类实现了InitializingBean，注入了MapperScanner对象，该对象会扫描指定包路径下的Mapper文件
+> @AutoConfigureAfter：在加载其value配置的类之后再加载当前类
+> 	确定了线程池管理对象PooledDataSourceConfiguration，在一个list中存放，for循环，Class对象加载类，获取到就返回，第一个是HikariDataSource，所以springboot2.0以上版本，会默认使用HikariDataSource作为数据库连接池管理对象
+> 	"com.zaxxer.hikari.HikariDataSource",
+> 	"org.apache.tomcat.jdbc.pool.DataSource", 
+> 	"org.apache.commons.dbcp2.BasicDataSource"
+>
+> sqlSessionFactory 通过DataSource生成factory，factory中设置了configuration配置的所有属性，包括plugins、typeHandlers等
+> sqlSessionTemplate 在包 mybatis-spring中，是spring封装的sqlSession对象，可以调用查询等方法
+>
+> MapperScannerRegistrarNotFoundConfiguration静态类引入了AutoConfiguredMapperScannerRegistrar
+> 该类实现了InitializingBean，注入了MapperScanner对象，该对象会扫描指定包路径下的Mapper文件
 
 
 ## 源码解读
 
 
-### 入口一 @MapperScan，扫描mybatis要用到的类，解析为BeanDefinition，最终加载到spring容器中
+### 一、@MapperScan，扫描mybatis要用到的类，解析为BeanDefinition，最终加载到spring容器中
 
 - 1.spring启动`AbstractApplicationContext` refresh()方法中`invokeBeanFactoryPostProcessors`中会执行`BeanDefinitionRegistryPostProcessor`的`postProcessBeanDefinitionRegistry`方法
 - 2.其中优先执行实现了`PriorityOrdered`接口的`ConfigurationClassPostProcessor`类，该类中加载配置类，full、lite配置
@@ -67,7 +67,47 @@ MybatisAutoConfiguration(在包mybatis-spring-boot-autoconfigure中)
 - 6.`MapperScannerConfigurer`没有实现任何优先级的接口，故执行顺序要次于`ConfigurationClassPostProcessor`
 - 7.`ConfigurationClassPostProcessor`中会进行包扫描，`MapperScannerConfigurer`中也会进行包扫描，优于先后顺序，spring的包扫描要优于mybatis的执行
 
-### 入口二 自动装配类 MybatisAutoConfiguration
+
+### 二、拦截器Interceptor
+
+- 1.`MybatisAutoConfiguration`配置类，启动会注入`Interceptor`类型的数组，将spring中所有的拦截器加载进来，并设置为`SqlSessionFactoryBean`的属性
+- 2.在`SqlSessionFactoryBean`的`buildSqlSessionFactory`方法中设置为`Configuration`的拦截器属性，添加到`interceptorChain`拦截器调用链中
+- 3.在`Configuration`的`newExecutor`等方法，创建各个模块（Executor、ParameterHandler、ResultSetHandler、StatementHandler）的最后一步，执行`pluginAll`方法
+- 4.在`Plugin`的`wrap`方法中解析`Intercepts`注解的属性，根据type生成其对应的代理对象
+- 5.`Plugin`的`invoke`方法（代理对象最终要执行的方法），会判断当前方法是否是需要拦截的方法，如果是，直接调用`Interceptor`的`intercept`方法，执行自定义逻辑，如果不是，通过反射调用对应方法
+
+
+
+> Interceptor接口的方法
+>   
+>   修改方法的执行逻辑
+>   Object intercept(Invocation invocation) throws Throwable;
+> 
+> 
+>  根据要拦截的信息，生成代理对象
+>   default Object plugin(Object target) {
+>     return Plugin.wrap(target, this);
+>   }
+
+
+> MyBatis 允许你在映射语句执行过程中的某一点进行拦截调用。默认情况下，MyBatis 允许使用插件来拦截的方法调用包括：
+>
+> Executor (update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)
+> ParameterHandler (getParameterObject, setParameters)
+> ResultSetHandler (handleResultSets, handleOutputParameters)
+> StatementHandler (prepare, parameterize, batch, update, query)
+
+
+> Executor：代表执行器，由它调度StatementHandler、ParameterHandler、ResultSetHandler等来执行对应的SQL，其中StatementHandler是最重要的。executor最先执行
+> StatementHandler：作用是使用数据库的Statement（PreparedStatement）执行操作，它是四大对象的核心，起到承上启下的作用，许多重要的插件都是通过拦截它来实现的。
+> ParameterHandler：是用来处理SQL参数的。
+> ResultSetHandler：是进行数据集（ResultSet）的封装返回处理的。
+> 
+> 各模块执行顺序 Executor StatementHandler ParameterHandler ResultSetHandler
+
+
+
+### 三、自动装配类 MybatisAutoConfiguration
 
 TODO
 - 1.多数据源

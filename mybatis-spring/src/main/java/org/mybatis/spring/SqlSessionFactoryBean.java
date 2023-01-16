@@ -503,6 +503,7 @@ public class SqlSessionFactoryBean
    */
   protected SqlSessionFactory buildSqlSessionFactory() throws Exception {
 
+    //重要 组装Configuration对象
     final Configuration targetConfiguration;
 
     XMLConfigBuilder xmlConfigBuilder = null;
@@ -540,6 +541,7 @@ public class SqlSessionFactoryBean
       });
     }
 
+    //设置到 Configuration 得 interceptorChain 拦截器链 列表中
     if (!isEmpty(this.plugins)) {
       Stream.of(this.plugins).forEach(plugin -> {
         targetConfiguration.addInterceptor(plugin);

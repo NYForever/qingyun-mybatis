@@ -41,9 +41,11 @@ public class Plugin implements InvocationHandler {
   }
 
   public static Object wrap(Object target, Interceptor interceptor) {
+    //解析Intercepts注解标注的信息
     Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
     Class<?> type = target.getClass();
     Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
+    //生成type对应的代理对象
     if (interfaces.length > 0) {
       return Proxy.newProxyInstance(
           type.getClassLoader(),
@@ -53,13 +55,24 @@ public class Plugin implements InvocationHandler {
     return target;
   }
 
+  /**
+   * 执行代理逻辑
+   *
+   * @param proxy
+   * @param method
+   * @param args
+   * @return
+   * @throws Throwable
+   */
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
       Set<Method> methods = signatureMap.get(method.getDeclaringClass());
       if (methods != null && methods.contains(method)) {
+        //方法不为空且是要拦截的方法，执行intercept方法，修改业务逻辑
         return interceptor.intercept(new Invocation(target, method, args));
       }
+      //不是要执行的方法，直接执行
       return method.invoke(target, args);
     } catch (Exception e) {
       throw ExceptionUtil.unwrapThrowable(e);
@@ -77,12 +90,14 @@ public class Plugin implements InvocationHandler {
     for (Signature sig : sigs) {
       Set<Method> methods = signatureMap.computeIfAbsent(sig.type(), k -> new HashSet<>());
       try {
+        //判断type对应的类是否有其指定的方法
         Method method = sig.type().getMethod(sig.method(), sig.args());
         methods.add(method);
       } catch (NoSuchMethodException e) {
         throw new PluginException("Could not find method on " + sig.type() + " named " + sig.method() + ". Cause: " + e, e);
       }
     }
+    //根据type，获取要拦截的方法和参数，返回一个map，key位type，value为methods
     return signatureMap;
   }
 

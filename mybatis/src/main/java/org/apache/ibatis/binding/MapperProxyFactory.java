@@ -49,6 +49,7 @@ public class MapperProxyFactory<T> {
   }
 
   public T newInstance(SqlSession sqlSession) {
+    //MapperProxy为mapper的代理对象，动态代理，关注其invoke方法，即通过mapper真正调用方法时，会走其invoke方法
     final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
     return newInstance(mapperProxy);
   }

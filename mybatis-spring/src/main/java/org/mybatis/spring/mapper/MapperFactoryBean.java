@@ -61,11 +61,18 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
     // intentionally empty
   }
 
+  /**
+   * 通过type注入spring，推断构造方法，调用该构造器，注入MapperFactoryBean，每个mapper接口都对应一个MapperFactoryBean
+   *
+   * @param mapperInterface
+   */
   public MapperFactoryBean(Class<T> mapperInterface) {
     this.mapperInterface = mapperInterface;
   }
 
   /**
+   * DaoSupport实现了InitializingBean，afterPropertiesSet会调用该方法
+   *
    * {@inheritDoc}
    */
   @Override
@@ -77,6 +84,7 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
     Configuration configuration = getSqlSession().getConfiguration();
     if (this.addToConfig && !configuration.hasMapper(this.mapperInterface)) {
       try {
+        //将MapperFactoryBean添加到configuration中
         configuration.addMapper(this.mapperInterface);
       } catch (Exception e) {
         logger.error("Error while adding the mapper '" + this.mapperInterface + "' to configuration.", e);
@@ -88,6 +96,10 @@ public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements Factor
   }
 
   /**
+   * 实现了FactoryBean接口，启动会调用该方法，注入bean
+   * 该方法获取到的是每个mapper对应的代理类，将其交给spring管理
+   * 后续调用mapper某方法时，会查出其代理类，执行方法
+   *
    * {@inheritDoc}
    */
   @Override

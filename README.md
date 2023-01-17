@@ -81,10 +81,12 @@ MybatisAutoConfiguration(在包mybatis-spring-boot-autoconfigure中)
 > Interceptor接口的方法
 >   
 >   修改方法的执行逻辑
+> 
 >   Object intercept(Invocation invocation) throws Throwable;
 > 
 > 
 >  根据要拦截的信息，生成代理对象
+> 
 >   default Object plugin(Object target) {
 >     return Plugin.wrap(target, this);
 >   }
@@ -93,14 +95,20 @@ MybatisAutoConfiguration(在包mybatis-spring-boot-autoconfigure中)
 > MyBatis 允许你在映射语句执行过程中的某一点进行拦截调用。默认情况下，MyBatis 允许使用插件来拦截的方法调用包括：
 >
 > Executor (update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)
+> 
 > ParameterHandler (getParameterObject, setParameters)
+> 
 > ResultSetHandler (handleResultSets, handleOutputParameters)
+> 
 > StatementHandler (prepare, parameterize, batch, update, query)
 
 
 > Executor：代表执行器，由它调度StatementHandler、ParameterHandler、ResultSetHandler等来执行对应的SQL，其中StatementHandler是最重要的。executor最先执行
+> 
 > StatementHandler：作用是使用数据库的Statement（PreparedStatement）执行操作，它是四大对象的核心，起到承上启下的作用，许多重要的插件都是通过拦截它来实现的。
+> 
 > ParameterHandler：是用来处理SQL参数的。
+> 
 > ResultSetHandler：是进行数据集（ResultSet）的封装返回处理的。
 > 
 > 各模块执行顺序 Executor StatementHandler ParameterHandler ResultSetHandler

@@ -114,8 +114,25 @@ MybatisAutoConfiguration(在包mybatis-spring-boot-autoconfigure中)
 > 各模块执行顺序 Executor StatementHandler ParameterHandler ResultSetHandler
 
 
+### 三、多数据源配置（核心：根据不同的数据库配置，加载不同的`DataSource`对象，通过`DataSource`创建`SqlSessionFactory`，通过`SqlSessionFactory`创建`SqlSessionTemplate`）
 
-### 三、自动装配类 MybatisAutoConfiguration
+- 1.`MybatisAutoConfiguration`中`@ConditionalOnSingleCandidate(DataSource.class)`表示当只有一个`DataSource`时加载该类，即创建默认的`SqlSessionFactory`和`sqlSessionTemplate`
+- 2.当引入多数据源时，`MybatisAutoConfiguration`类不再加载，走自定义的配置类
+- 3.`MapperScan`注解指定数据源要扫描的路径，当有多个数据源时，**通过`sqlSessionTemplateRef`指定template的别名**
+- 4.通过`@ConfigurationProperties`注解指定`DataSource`的配置值，注入对应的`DataSource`
+- 5.通过`DataSource`创建`SqlSessionFactory`，通过`SqlSessionFactory`创建`sqlSessionTemplate`
+
+> 多数据源配置类：
+> 
+> DataSourceWanConfig
+> 
+> DataSourceYunConfig
+
+
+![img.png](img.png)
+
+
+### 四、自动装配类 MybatisAutoConfiguration
 
 TODO
 - 1.多数据源

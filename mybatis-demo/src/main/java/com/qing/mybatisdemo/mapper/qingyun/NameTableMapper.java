@@ -1,6 +1,6 @@
-package com.qy.mybatisdemo.mapper;
+package com.qing.mybatisdemo.mapper.qingyun;
 
-import com.qy.mybatisdemo.pojo.NameTable;
+import com.qing.mybatisdemo.pojo.NameTable;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.qy.mybatisdemo.pojo;
+package com.qing.mybatisdemo.pojo;
 
 import lombok.Data;
 
@@ -8,8 +8,8 @@ import lombok.Data;
  * @Description
  */
 @Data
-public class NameTable {
+public class AddressTable {
 
     private Integer id;
-    private String name;
+    private String address;
 }

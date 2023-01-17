@@ -1,11 +1,11 @@
-package com.qy.mybatisdemo;
+package com.qing.mybatisdemo;
 
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan
+//@MapperScan
 public class MybatisDemoApplication {
 
     public static void main(String[] args) {

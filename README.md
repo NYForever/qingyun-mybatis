@@ -131,9 +131,33 @@ MybatisAutoConfiguration(在包mybatis-spring-boot-autoconfigure中)
 
 ![img.png](img.png)
 
+### 四、串联所有流程
 
-### 四、自动装配类 MybatisAutoConfiguration
+- 1.入口`MapperScan`，`@Import(MapperScannerRegistrar.class)`
+- 2.`MapperScannerRegistrar`实现了`ImportBeanDefinitionRegistrar`，register BeanDefinition `MapperScannerConfigurer`
+- 3.`BeanDefinitionRegistryPostProcessor`实现了`BeanDefinitionRegistryPostProcessor`，执行其`postProcessBeanDefinitionRegistry`方法注入bean
+- 4.定义了`ClassPathMapperScanner`对象，根据配置的路径扫描mapper对应的接口
+- 5.重写了spring的doScan方法，修改扫描到mapper的BeanDefinition信息，修改BeanClass为`MapperFactoryBean`，自动注入方式为ByType
+- 6.`MapperFactoryBean`继承`DaoSupport`，其实现了`InitializingBean`接口，会执行`afterPropertiesSet`，最终执行`checkDaoConfig`方法，将mapper接口信息设置到`configuration`对象中
+- 7.`MapperFactoryBean`同时实现了`FactoryBean`接口，在spring容器启动过程中会调用其`getObject`方法注入对象
+- 8.跟踪`getObject`方法会发现，其最终是根据mapper接口创建了`MapperProxy`代理对象，交由spring管理，当调用mapper接口对应的方法时，会执行`MapperProxy`的`invoke`方法
 
-TODO
-- 1.多数据源
-- 2.
+====================自此启动完成，以下执行业务逻辑时触发====================
+
+- 9.业务侧通过注入mapper接口，进行方法调用时，会执行`MapperProxy`的`invoke`方法，找到接口对应的代理类，真正执行业务方法
+- 10.继续执行，会走到`PlainMethodInvoker`的`invoke`方法，`MapperMethod`的`executor`方法会根据当前操作的type，来走增、删、改、查不同的逻辑
+- 11.比如执行`selectList`操作，会走到`SqlSessionTemplate`的`selectList`方法
+- 12.`SqlSessionTemplate`的`sqlSessionProxy`，在其构造方法中会发现其也是通过代理实现
+- 13.真正获取`sqlSession`会执行`SqlSessionInterceptor`的`invoke`方法
+- 14.其中`getSqlSession`是真正获取`sqlSession`对象，其会先从当前ThreadLocal中拿，拿不到再创建
+- 15.其中`openSessionFromDataSource`获取`sqlSession`对象会创建`Executor`对象
+- 16.`newExecutor`方法最后一步会执行`interceptorChain.pluginAll(executor);`，即对`executor`对象进行拦截处理，执行拦截器`Interceptor`逻辑
+- 17.拿着`executor`执行`selectList`,到`SimpleExecutor`的`doQuery`方法，`configuration.newStatementHandler`创建`StatementHandler`对象，同样在`newStatementHandler`的最后一步也会执行拦截器逻辑
+- 18.其中创建`StatementHandler`的过程中，会创建`RoutingStatementHandler`，在其父构造方法中，会创建`ParameterHandler`、`ResultSetHandler`，同样在`newStatementHandler`的最后一步也会执行拦截器逻辑
+- 19.所以拦截器的执行顺序为`Executor>StatementHandler>ParameterHandler>ResultSetHandler`
+- 20.最终会用生成的四大对象，调用jdbc，预处理sql，执行sql，封装返回结果，执行完毕
+
+
+
+### 五、自动装配类 MybatisAutoConfiguration
+

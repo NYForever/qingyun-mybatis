@@ -135,9 +135,9 @@ MybatisAutoConfiguration(在包mybatis-spring-boot-autoconfigure中)
 
 - 1.入口`MapperScan`，`@Import(MapperScannerRegistrar.class)`
 - 2.`MapperScannerRegistrar`实现了`ImportBeanDefinitionRegistrar`，register BeanDefinition `MapperScannerConfigurer`
-- 3.`BeanDefinitionRegistryPostProcessor`实现了`BeanDefinitionRegistryPostProcessor`，执行其`postProcessBeanDefinitionRegistry`方法注入bean
-- 4.定义了`ClassPathMapperScanner`对象，根据配置的路径扫描mapper对应的接口
-- 5.重写了spring的doScan方法，修改扫描到mapper的BeanDefinition信息，修改BeanClass为`MapperFactoryBean`，自动注入方式为ByType
+- 3.`MapperScannerConfigurer`实现了`BeanDefinitionRegistryPostProcessor`，执行其`postProcessBeanDefinitionRegistry`方法注入bean `ClassPathMapperScanner`
+- 4.`ClassPathMapperScanner`对象为包扫描，根据配置的路径扫描mapper对应的接口
+- 5.其扫描逻辑重写了spring的doScan方法，修改扫描到mapper的BeanDefinition信息，修改BeanClass为`MapperFactoryBean`，自动注入方式为ByType，即spring启动会注入`MapperFactoryBean`
 - 6.`MapperFactoryBean`继承`DaoSupport`，其实现了`InitializingBean`接口，会执行`afterPropertiesSet`，最终执行`checkDaoConfig`方法，将mapper接口信息设置到`configuration`对象中
 - 7.`MapperFactoryBean`同时实现了`FactoryBean`接口，在spring容器启动过程中会调用其`getObject`方法注入对象
 - 8.跟踪`getObject`方法会发现，其最终是根据mapper接口创建了`MapperProxy`代理对象，交由spring管理，当调用mapper接口对应的方法时，会执行`MapperProxy`的`invoke`方法
@@ -153,7 +153,7 @@ MybatisAutoConfiguration(在包mybatis-spring-boot-autoconfigure中)
 - 15.其中`openSessionFromDataSource`获取`sqlSession`对象会创建`Executor`对象
 - 16.`newExecutor`方法最后一步会执行`interceptorChain.pluginAll(executor);`，即对`executor`对象进行拦截处理，执行拦截器`Interceptor`逻辑
 - 17.拿着`executor`执行`selectList`,到`SimpleExecutor`的`doQuery`方法，`configuration.newStatementHandler`创建`StatementHandler`对象，同样在`newStatementHandler`的最后一步也会执行拦截器逻辑
-- 18.其中创建`StatementHandler`的过程中，会创建`RoutingStatementHandler`，在其父构造方法中，会创建`ParameterHandler`、`ResultSetHandler`，同样在`newStatementHandler`的最后一步也会执行拦截器逻辑
+- 18.其中创建`StatementHandler`的过程中，会创建`RoutingStatementHandler`，在其父构造方法中，会创建`ParameterHandler`、`ResultSetHandler`，同样在创建的最后一步也会执行拦截器逻辑
 - 19.所以拦截器的执行顺序为`Executor>StatementHandler>ParameterHandler>ResultSetHandler`
 - 20.最终会用生成的四大对象，调用jdbc，预处理sql，执行sql，封装返回结果，执行完毕
 

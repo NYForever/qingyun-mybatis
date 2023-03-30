@@ -40,6 +40,7 @@ tips：
 
 自动配置类
 MybatisAutoConfiguration(在包mybatis-spring-boot-autoconfigure中)
+> 在spring.factories文件中指定了该类，spring启动即会加载
 
 > @AutoConfigureAfter：在加载其value配置的类之后再加载当前类
 > 	确定了线程池管理对象PooledDataSourceConfiguration，在一个list中存放，for循环，Class对象加载类，获取到就返回，第一个是HikariDataSource，所以springboot2.0以上版本，会默认使用HikariDataSource作为数据库连接池管理对象

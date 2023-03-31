@@ -66,6 +66,7 @@ public class MapperRegistry {
       }
       boolean loadCompleted = false;
       try {
+        //根据class类型，创建代理对象，并放入knownMappers中
         knownMappers.put(type, new MapperProxyFactory<>(type));
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the

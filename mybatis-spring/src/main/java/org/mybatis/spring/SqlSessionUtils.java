@@ -104,7 +104,7 @@ public final class SqlSessionUtils {
     }
 
     LOGGER.debug(() -> "Creating a new SqlSession");
-    // 创建一个sqlsessin，属于mybatis的代码
+    // 如果为空，则创建一个sqlsessin，属于mybatis的代码
     session = sessionFactory.openSession(executorType);
 
     // 绑定到当前线程

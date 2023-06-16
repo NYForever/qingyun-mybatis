@@ -217,6 +217,7 @@ public class MybatisAutoConfiguration implements InitializingBean {
     if (executorType != null) {
       return new SqlSessionTemplate(sqlSessionFactory, executorType);
     } else {
+      //在SqlSessionTemplate中通过动态代理生成SqlSessionProxy对象
       return new SqlSessionTemplate(sqlSessionFactory);
     }
   }
